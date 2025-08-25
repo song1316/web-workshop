@@ -228,20 +228,74 @@
           </blockquote>
         </div>
 
-        <div class="mini-card purple-card">
-          <h2>我的 BGM</h2>
-          <audio controls style="width:100%">
-            <source src="./assets/intro.mp3" type="audio/mpeg"/>
-            你的浏览器不支持音频播放。
-          </audio>
+        <div class="mini-card green-card" id="github-card">
+          <h2>我的 GitHub 动态</h2>
+          <div id="github-info">加载中...</div>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- 技能条动画 -->
   <script>
+    // 1. 技能条
     window.addEventListener('load', ()=> document.body.classList.add('loaded'));
+
+    // 2. 每 2 秒随机改变背景颜色
+    const outerCard = document.getElementById('outer-card');
+    const colors = [
+      'rgba(255, 230, 230, 0.9)',
+      'rgba(230, 255, 230, 0.9)',
+      'rgba(230, 230, 255, 0.9)',
+      'rgba(255, 255, 230, 0.9)',
+      'rgba(230, 255, 255, 0.9)'
+    ];
+
+    setInterval(() => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      outerCard.style.backgroundColor = color;
+    }, 2000);
+
+
+    // 3. github
+    async function fetchGitHubInfo() {
+      try {
+        // 获取用户基本信息
+        const userRes = await fetch("https://api.github.com/users/song1316");
+        const user = await userRes.json();
+
+        // 获取仓库信息（按更新时间排序）
+        const repoRes = await fetch("https://api.github.com/users/song1316/repos?sort=updated");
+        const repos = await repoRes.json();
+
+        const infoDiv = document.getElementById("github-info");
+        infoDiv.innerHTML = `
+          <p>👤 <strong>${user.login}</strong> (${user.name || "无昵称"})</p>
+          <p>📦 仓库数量：${user.public_repos}</p>
+          <p>👥 关注者：${user.followers}</p>
+          <p>📍 位置：${user.location || "未填写"}</p>
+          <p>🔗 <a href="${user.html_url}" target="_blank">查看 GitHub 主页</a></p>
+          <h3>📌 最近更新的仓库</h3>
+        `;
+
+        const ul = document.createElement("ul");
+        repos.slice(0, 5).forEach(repo => {
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${repo.html_url}" target="_blank">${repo.name}</a>
+            (最后更新: ${new Date(repo.updated_at).toLocaleDateString()})`;
+          ul.appendChild(li);
+        });
+        infoDiv.appendChild(ul);
+      }
+      catch (err) {
+        console.error("获取 GitHub 数据失败", err);
+        document.getElementById("github-info").textContent = "加载失败 😢";
+      }
+    }
+
+    fetchGitHubInfo();
+
+
   </script>
 </body>
 </html>
